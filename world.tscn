@@ -1,0 +1,83 @@
+[gd_scene load_steps=9 format=3 uid="uid://dx4vrf0x0hmmu"]
+
+[ext_resource type="Texture2D" uid="uid://bll8qlvf527ie" path="res://PNG/Hills Layer 01.png" id="1_kldda"]
+[ext_resource type="Texture2D" uid="uid://bv0ju7cgbcqio" path="res://PNG/Hills Layer 02.png" id="2_73vym"]
+[ext_resource type="Texture2D" uid="uid://cbfafbxigw01y" path="res://PNG/Hills Layer 03.png" id="3_6f322"]
+[ext_resource type="Texture2D" uid="uid://dp3ngttqno6av" path="res://PNG/Hills Layer 04.png" id="4_7vsg0"]
+[ext_resource type="Texture2D" uid="uid://ceaeq6rr8dl6q" path="res://PNG/Hills Layer 05.png" id="5_1s6j4"]
+[ext_resource type="Texture2D" uid="uid://b1v5uebpo72rc" path="res://PNG/Hills Layer 06.png" id="6_2omis"]
+[ext_resource type="PackedScene" uid="uid://ieo5axqpqwdd" path="res://player.tscn" id="7_7ndwn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qxdeb"]
+size = Vector2(9869, 79)
+
+[node name="world" type="Node2D"]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1144.5, 650.5)
+shape = SubResource("RectangleShape2D_qxdeb")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("1_kldda")
+
+[node name="ParallaxLayer2" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.2, 0.2)
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer2"]
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("2_73vym")
+
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer3"]
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("3_6f322")
+
+[node name="ParallaxLayer4" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.4, 0.4)
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer4"]
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("4_7vsg0")
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer5"]
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("5_1s6j4")
+
+[node name="ParallaxBackground2" type="ParallaxBackground" parent="."]
+layer = 1
+
+[node name="ParallaxLayer7" type="ParallaxLayer" parent="ParallaxBackground2"]
+z_index = 1
+motion_scale = Vector2(2, 2)
+motion_mirroring = Vector2(1147, 1)
+
+[node name="HillsLayer01" type="Sprite2D" parent="ParallaxBackground2/ParallaxLayer7"]
+z_index = 1
+position = Vector2(573.5, 326.5)
+scale = Vector2(2.24023, 2.55078)
+texture = ExtResource("6_2omis")
+
+[node name="player" parent="." instance=ExtResource("7_7ndwn")]
+position = Vector2(542, 586)
