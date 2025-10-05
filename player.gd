@@ -25,8 +25,7 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_just_pressed("shift"):
 			$AnimatedSprite2D.play("roll")
 			$animation/roll_timer.start()
-			SPEED =roll_speed
-			SPEED =lerp(roll_speed,normal_speed,0.5)
+			SPEED = roll_speed
 		elif $animation/roll_timer.is_stopped():
 			$AnimatedSprite2D.play("run")
 			$AnimatedSprite2D.flip_h = false
@@ -35,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_just_pressed("shift"):
 			$AnimatedSprite2D.play("roll")
 			$animation/roll_timer.start()
-			SPEED =lerp(roll_speed,normal_speed,0.5)
+			SPEED =roll_speed
 		elif $animation/roll_timer.is_stopped():
 			$AnimatedSprite2D.play("run")
 			$AnimatedSprite2D.flip_h = true
@@ -50,11 +49,17 @@ func _physics_process(delta: float) -> void:
 
 
 
-func roll_physics():
-	var jump_distance = 500
-	if Input.is_action_just_pressed("shift"):
-		$AnimatedSprite2D.play("roll")
+func roll_physics(normal_speed,Speed):
+	while Speed>normal_speed:
+		Speed-=25
+	return Speed
+
 
 
 func _on_roll_timer_timeout() -> void:
-	SPEED=normal_speed
+	$animation/Timer.start()
+
+
+func _on_timer_timeout() -> void:
+	if SPEED>normal_speed:
+		SPEED -=15
