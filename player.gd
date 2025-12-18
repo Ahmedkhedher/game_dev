@@ -15,6 +15,7 @@ enum PlayerState {
 	IDLE, RUN, JUMP, FALL, ROLL,
 	CROUCH, CROUCH_RUN,
 	ATTACK_STRONG, ATTACK_NORMAL, ATTACK_CROUCH,
+	SLIDE,
 }
 
 # --- Member Variables ---
@@ -73,6 +74,9 @@ func _handle_input() -> void:
 	# 4. Handle Roll
 	if Input.is_action_just_pressed("shift") and is_on_floor() and abs(direction) > 0.0:
 		_start_roll()
+	# 5. hanndle slide
+	if Input.is_action_just_pressed("slide")  and is_on_floor() and abs(direction) > 0.0:
+		_start_slide()
 
 func _start_attack(attack_type: PlayerState) -> void:
 	is_attacking = true
@@ -85,6 +89,10 @@ func _start_jump() -> void:
 
 func _start_roll() -> void:
 	_set_state(PlayerState.ROLL)
+	_start_speed_boost()
+
+func _start_slide():
+	_set_state(PlayerState.SLIDE)
 	_start_speed_boost()
 
 func _start_speed_boost() -> void:
@@ -137,7 +145,9 @@ func _set_state(new_state: PlayerState) -> void:
 		PlayerState.ATTACK_NORMAL: $AnimatedSprite2D.play("attack_normal")
 		PlayerState.ATTACK_STRONG: $AnimatedSprite2D.play("attack_strong")
 		PlayerState.ATTACK_CROUCH: $AnimatedSprite2D.play("attack_crouch")
-
+		PlayerState.SLIDE : $AnimatedSprite2D.play("slide")
+		
+	
 	$AnimatedSprite2D.offset.y = y_offset
 
 func _update_state_and_animation() -> void:
@@ -146,7 +156,7 @@ func _update_state_and_animation() -> void:
 	elif direction < 0: $AnimatedSprite2D.flip_h = true
 
 	# State Priority Logic
-	if is_attacking or state == PlayerState.ROLL:
+	if is_attacking or state == PlayerState.ROLL or state == PlayerState.ROLL:
 		return # Let the animation or timer finish
 
 	if not is_on_floor():
