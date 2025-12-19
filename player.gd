@@ -3,21 +3,19 @@ extends CharacterBody2D
 # --- Godot Character Movement Configuration ---
 
 const MOVEMENT_CONFIG = {
-	"NORMAL_SPEED": 200.0,
+	"NORMAL_SPEED": 300.0,
 	"CROUCH_SPEED": 150.0,   # Slower speed while crouching
 	"JUMP_VELOCITY": -400.0,
-	"JUMP_PUSH":350.0,
-	"ROLL_SPEED": 500.0,
-	"SLIDE_SPEED": 400.0,
-	"ACCELERATION": 1000.0,
-	"DEACCELERATION": 1000.0,
+	"ROLL_SPEED": 700.0,
+	"ACCELERATION": 1500.0,
+	"DEACCELERATION": 2500.0,
 }
 
 enum PlayerState {
 	IDLE, RUN, JUMP, FALL, ROLL,
 	CROUCH, CROUCH_RUN,
 	ATTACK_STRONG, ATTACK_NORMAL, ATTACK_CROUCH,
-	SLIDE,wall_stuck,turn,
+	SLIDE,
 }
 
 # --- Member Variables ---
@@ -27,8 +25,6 @@ var direction: float = 0.0
 var state: PlayerState = PlayerState.IDLE
 var is_boosted: bool = false
 var is_attacking: bool = false # Internal flag to lock state during animation
-var is_turning: bool = false
-var current_direction = "right"
 
 # --- Built-in Functions ---
 
@@ -50,7 +46,7 @@ func _physics_process(delta: float) -> void:
 # --- Core Logic Functions ---
 
 func _apply_gravity(delta: float) -> void:
-	if not is_on_floor() and state != PlayerState.wall_stuck:
+	if not is_on_floor():
 		velocity += get_gravity() * delta
 
 func _handle_input() -> void:
@@ -64,15 +60,15 @@ func _handle_input() -> void:
 
 	# 2. Handle Attacks (Check if on floor)
 	if is_on_floor():
-		if Input.is_action_pressed("attack_normal"): # Define these in Input Map
+		if Input.is_action_just_pressed("attack_normal"): # Define these in Input Map
 			_start_attack(PlayerState.ATTACK_CROUCH if Input.is_action_pressed("crouch") else PlayerState.ATTACK_NORMAL)
 			return
-		if Input.is_action_pressed("attack_strong"):
+		if Input.is_action_just_pressed("attack_strong"):
 			_start_attack(PlayerState.ATTACK_STRONG)
 			return
 
 	# 3. Handle Jump
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor() and state != PlayerState.SLIDE:
+	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		_start_jump()
 
 	# 4. Handle Roll
@@ -81,14 +77,6 @@ func _handle_input() -> void:
 	# 5. hanndle slide
 	if Input.is_action_just_pressed("slide")  and is_on_floor() and abs(direction) > 0.0:
 		_start_slide()
-	# 6. handle wall_climb
-	if is_on_wall_only() and Input.is_action_just_pressed("ui_accept"):
-		velocity= Vector2.ZERO
-		_set_state(PlayerState.wall_stuck)
-	if state == PlayerState.wall_stuck and Input.is_action_just_released("ui_accept"):
-		_set_state(PlayerState.IDLE)
-
-
 
 func _start_attack(attack_type: PlayerState) -> void:
 	is_attacking = true
@@ -96,49 +84,27 @@ func _start_attack(attack_type: PlayerState) -> void:
 	velocity.x = 0 # Usually you want to stop when attacking on ground
 
 func _start_jump() -> void:
-	if state != PlayerState.wall_stuck:
-		
-		velocity.y = MOVEMENT_CONFIG.JUMP_VELOCITY
-		_start_speed_boost(MOVEMENT_CONFIG.JUMP_PUSH)
+	velocity.y = MOVEMENT_CONFIG.JUMP_VELOCITY
+	_start_speed_boost()
 
 func _start_roll() -> void:
 	_set_state(PlayerState.ROLL)
-	_start_speed_boost(MOVEMENT_CONFIG.ROLL_SPEED)
+	_start_speed_boost()
 
 func _start_slide():
 	_set_state(PlayerState.SLIDE)
-	_start_speed_boost(MOVEMENT_CONFIG.SLIDE_SPEED)
+	_start_speed_boost()
 
-func _start_speed_boost(speed) -> void:
-	current_speed = speed
+func _start_speed_boost() -> void:
+	current_speed = MOVEMENT_CONFIG.ROLL_SPEED
 	is_boosted = true
 	$animation/roll_timer.start()
 
-func _start_turn():
-	if Input.is_action_just_pressed("move_left") and abs(velocity.x) > MOVEMENT_CONFIG.NORMAL_SPEED*0.5:
-		if current_direction !="left":
-			current_direction = "left"
-			is_turning = true
-			if is_turning:
-				_set_state(PlayerState.turn)
-			else:
-				_set_state(PlayerState.IDLE)
-	if Input.is_action_just_pressed("move_right") and abs(velocity.x) > MOVEMENT_CONFIG.NORMAL_SPEED*0.5:
-		if current_direction !="right":
-			current_direction = "right"
-			is_turning = true
-			if is_turning:
-				_set_state(PlayerState.turn)
-			else:
-				_set_state(PlayerState.IDLE)
-
-
-
 func _handle_boost_timer() -> void:
-	if is_boosted and $animation/roll_timer.is_stopped() and state != PlayerState.wall_stuck:
+	if is_boosted and $animation/roll_timer.is_stopped():
 		is_boosted = false
 		current_speed = MOVEMENT_CONFIG.NORMAL_SPEED
-		if state == PlayerState.ROLL or state == PlayerState.SLIDE or state == PlayerState.wall_stuck:
+		if state == PlayerState.ROLL:
 			_set_state(PlayerState.IDLE)
 
 func _calculate_horizontal_movement(delta: float) -> void:
@@ -167,8 +133,6 @@ func _set_state(new_state: PlayerState) -> void:
 	match state:
 		PlayerState.IDLE: $AnimatedSprite2D.play("idle")
 		PlayerState.RUN: $AnimatedSprite2D.play("run")
-		PlayerState.SLIDE : $AnimatedSprite2D.play("slide")
-		
 		PlayerState.JUMP: 
 			$AnimatedSprite2D.play("jump")
 			y_offset = -20.0
@@ -181,32 +145,22 @@ func _set_state(new_state: PlayerState) -> void:
 		PlayerState.ATTACK_NORMAL: $AnimatedSprite2D.play("attack_normal")
 		PlayerState.ATTACK_STRONG: $AnimatedSprite2D.play("attack_strong")
 		PlayerState.ATTACK_CROUCH: $AnimatedSprite2D.play("attack_crouch")
-		PlayerState.wall_stuck : $AnimatedSprite2D.play("wall_stuck")
-		PlayerState.turn : $AnimatedSprite2D.play("rotate")
-
+		PlayerState.SLIDE : $AnimatedSprite2D.play("slide")
+		
 	
 	$AnimatedSprite2D.offset.y = y_offset
 
 func _update_state_and_animation() -> void:
-
-	
-	_start_turn()
-	
-
-
 	# Flip sprite
-	if direction > 0: 
-		$AnimatedSprite2D.flip_h = false
-
-	elif direction < 0:
-		$AnimatedSprite2D.flip_h = true
+	if direction > 0: $AnimatedSprite2D.flip_h = false
+	elif direction < 0: $AnimatedSprite2D.flip_h = true
 
 	# State Priority Logic
-	if is_attacking or state == PlayerState.ROLL or state == PlayerState.SLIDE or state == PlayerState.turn:
+	if is_attacking or state == PlayerState.ROLL or state == PlayerState.ROLL:
 		return # Let the animation or timer finish
 
-	if not is_on_floor() and state !=PlayerState.wall_stuck:
-		_set_state(PlayerState.JUMP if velocity.y <= 0  else PlayerState.FALL)
+	if not is_on_floor():
+		_set_state(PlayerState.JUMP if velocity.y < 0 else PlayerState.FALL)
 		return
 
 	# Crouch Logic
@@ -220,27 +174,16 @@ func _update_state_and_animation() -> void:
 	# Standard Ground Logic
 	if abs(velocity.x) > 10.0:
 		_set_state(PlayerState.RUN)
-	elif state != PlayerState.wall_stuck:
+	else:
 		_set_state(PlayerState.IDLE)
 
 # --- Callbacks ---
 
 func _on_animation_finished() -> void:
 	# Reset attacking flag when attack animations finish
-	if state in [PlayerState.ATTACK_NORMAL, PlayerState.ATTACK_STRONG, PlayerState.ATTACK_CROUCH,PlayerState.turn ]:
+	if state in [PlayerState.ATTACK_NORMAL, PlayerState.ATTACK_STRONG, PlayerState.ATTACK_CROUCH]:
 		is_attacking = false
-		is_turning = false
 		_update_state_and_animation()
-		_set_state(PlayerState.IDLE)
 
 func _on_roll_timer_timeout() -> void:
 	pass
-
-
-func _on_slide_timer_timeout() -> void:
-	pass
-
-
-func _on_turn_timer_timeout() -> void:
-	pass
-	
